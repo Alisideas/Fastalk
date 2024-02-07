@@ -19,22 +19,23 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { Course } from "@prisma/client";
+import { formatPrice } from "@/lib/format";
 
-interface DescriptionFormProps {
+interface PriceFormProps {
     initialData: Course;
     courseId: string;
 };
 
 const fromSchema = z.object({
-    description: z.string().min(1, { message: 'Description is required' }),
+
+    price: z.coerce.number(),
 })
 
-export const DescriptionForm = ({
+export const PriceForm = ({
     initialData,
     courseId,
-}: DescriptionFormProps) => {
+}: PriceFormProps) => {
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -45,7 +46,7 @@ export const DescriptionForm = ({
     const from = useForm<z.infer<typeof fromSchema>>({
         resolver: zodResolver(fromSchema),
         defaultValues: {
-            description: initialData?.description || "",
+            price: initialData?.price || undefined,
         }
     });
 
@@ -54,7 +55,7 @@ export const DescriptionForm = ({
     const onSubmit = async (values: z.infer<typeof fromSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values);
-            toast.success('Course Description updated');
+            toast.success('Course Price updated');
             toggleEdit();
             router.refresh();
         } catch (error) {
@@ -65,21 +66,24 @@ export const DescriptionForm = ({
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Course Description
+                Course price
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
                         <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Edit Description
+                            Edit price
                         </>
                     )}
                 </Button>
             </div>
             {!isEditing && (
-                <p className={cn("text-sm mt-2",!initialData.description && "text-slate-500 italic")}>
-                    {initialData.description || "No description"}
+                <p className={cn("text-sm mt-2",!initialData.price && "text-slate-500 italic")}>
+                    {initialData.price
+                    ? formatPrice(initialData.price) 
+                    : "No price"
+                    }
                 </p>
             )}
             {isEditing && (
@@ -90,15 +94,18 @@ export const DescriptionForm = ({
                     >
                         <FormField 
                         control={from.control}
-                        name="description"
+                        name="price"
                         render={({ field }) => (
+                            
                             <FormItem>
                                 
                                 <FormControl>
-                                    <Textarea
+                                    <Input
+                                    type="number"
+                                    step="0.01"
                                     disabled={isSubmitting} 
-                                    placeholder="e.g. 'This course is about...'"
-                                    {...field} />
+                                    placeholder="Set a price for your course"
+                                    {...field} /> 
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
