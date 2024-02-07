@@ -45,14 +45,6 @@ export const AttachmentForm = ({
 
     const router = useRouter();
 
-    // const from = useForm<z.infer<typeof fromSchema>>({
-    //     resolver: zodResolver(fromSchema),
-    //     defaultValues: {
-    //         imageUrl: initialData?.imageUrl || "",
-    //     }
-    // });
-
-    // const { isSubmitting, isValid } = from.formState;
 
     const onSubmit = async (values: z.infer<typeof fromSchema>) => {
         try {
@@ -63,6 +55,21 @@ export const AttachmentForm = ({
         } catch (error) {
             toast.error('Something went wrong');
         }
+    }
+
+    const onDelete = async (id: string) => {
+        try {
+            setDeletingId(id);
+            await axios.delete(`/api/courses/${courseId}/attachments/${id}`);
+            toast.success('Course attachment deleted');
+            router.refresh();
+        } catch {
+            toast.error('Something went wrong');
+        }
+        finally {
+            setDeletingId(null);
+        }
+
     }
 
     return (
@@ -101,12 +108,15 @@ export const AttachmentForm = ({
                                     </p>
                                     {deletingId === attachment.id && (
                                         <div>
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
                                         </div>
                                     )}
                                     {deletingId !== attachment.id && (
-                                        <button className="ml-auto hover:opacity-75 transition">
-                                            <X className="h-4 w-4"/>
+                                        <button 
+                                        className="ml-auto hover:opacity-75 transition"
+                                        onClick={() => onDelete(attachment.id)}
+                                        >
+                                            <X className="h-4 w-4" />
                                         </button>
                                     )}
 
