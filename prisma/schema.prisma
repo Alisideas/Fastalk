@@ -8,7 +8,9 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
+
 
 model Course {
   id String @id @default(uuid())
@@ -30,6 +32,7 @@ model Course {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@fulltext([title])
 }
 
 model Category{
@@ -104,7 +107,7 @@ model UserProgress {
 
 model Purchase {
   id String @id @default(uuid())
-  userUd String
+  userId String
 
   courseId String
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
